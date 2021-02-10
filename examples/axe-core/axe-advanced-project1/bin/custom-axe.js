@@ -11,12 +11,10 @@ const pkg = require('../package.json');
 const globby = require('globby');
 const protocolify = require('protocolify');
 const commander = require('commander');
-const allConfig = require('../config');
 
 const fs = require('fs');
 
-let configCustom = null;
-let templateCustom = 'index.handlebars';
+//let configCustom = null;
 
 commander
 	.version(pkg.version)
@@ -38,41 +36,33 @@ commander
 		'-x, --sitemap-exclude <pattern>',
 		'a pattern to find in sitemaps and exclude any url that matches'
 	)
-	.option('--config <string>')
-	.option('--template <string>')
+	.option(
+		'-c, --config <string>',
+		'Use an alternate configuration for this analysis',
+		'config/custom-axe.config.js'
+ 	)
+	.option(
+		'-t, --template <string>',
+		'Use an alternate template for this analysis',
+		'config/index.handlebars'
+	)
 	.requiredOption(
 		'-h, --html-report <dir>',
 		'Takes json output and uses pa11y-ci-reporter-html to generate a report in <dir>'
 	)
-	.action((config, args) => {
-		let rawArgs = config.rawArgs;
-		let indexConfig = rawArgs.findIndex(value => value === '--config');
-		let indexTemplate = rawArgs.findIndex(value => value === '--template');
-
-		if(indexConfig !== -1) {
-			let nameConfig = rawArgs[++indexConfig];
-			
-			for (const key in allConfig) {
-				if(key == nameConfig) configCustom = allConfig[key];
-			}
-		}
-
-		if(!configCustom) {
-			configCustom = allConfig.config;
-		}
-
-		if(indexTemplate !== -1) {
-			templateCustom = rawArgs[++indexTemplate];
-		}
-	})
 	.parse(process.argv);
 
 // Parse the args into valid paths using glob and protocolify
 let commandLineUrls = globby.sync(commander.args, {nonull: true}).map(protocolify);
 
+const configPath = `../${commander.opts().config}`;
+
+const configCustom = require(configPath);
+
+const templateCustom = commander.opts().template;
+
 const main = async () => {
 	// configuration urls first, then commandline urls then sitemap
-	console.log(templateCustom)
 	configCustom.urls = configCustom.urls.concat(commandLineUrls);
 
 	const filteredSitemapUrls = await customAxe.retrieveSitemapUrls(commander.sitemap,

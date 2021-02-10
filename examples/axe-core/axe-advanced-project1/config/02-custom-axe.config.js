@@ -190,4 +190,4 @@ const config2 = {
 	}
 };
 
-module.exports = { config2 };
+module.exports = config2;

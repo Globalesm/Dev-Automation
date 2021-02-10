@@ -143,4 +143,4 @@ const config1 = {
 	}
 };
 
-module.exports = { config1 };
+module.exports = config1;

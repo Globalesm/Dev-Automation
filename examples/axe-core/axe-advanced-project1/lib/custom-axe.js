@@ -16,7 +16,7 @@ const puppeteer = require('puppeteer');
 // specifying a custom template.
 const generateSummaryHtmlReport = (summary, outputDir, templateName) => {
 	// console.log(JSON.stringify(summary));
-	const templateFile = path.resolve(`${__dirname}/../config/${templateName}`);
+	const templateFile = path.resolve(`${__dirname}/../${templateName}`);
 	const summaryReportTemplate = fs.readFileSync(templateFile, 'utf-8');
 	const template = handlebars.compile(summaryReportTemplate);
 	// console.log(JSON.stringify(summary, null, 2));
