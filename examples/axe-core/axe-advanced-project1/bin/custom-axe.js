@@ -57,22 +57,22 @@ let commandLineUrls = globby.sync(commander.args, {nonull: true}).map(protocolif
 
 const configPath = `../${commander.opts().config}`;
 
-const configCustom = require(configPath);
+const config = require(configPath);
 
 const templateCustom = commander.opts().template;
 
 const main = async () => {
 	// configuration urls first, then commandline urls then sitemap
-	configCustom.urls = configCustom.urls.concat(commandLineUrls);
+	config.urls = config.urls.concat(commandLineUrls);
 
 	const filteredSitemapUrls = await customAxe.retrieveSitemapUrls(commander.sitemap,
 		commander.sitemapFind,
 		commander.sitemapReplace,
 		commander.sitemapExclude);
 
-	configCustom.urls = configCustom.urls.concat(filteredSitemapUrls);
+	config.urls = config.urls.concat(filteredSitemapUrls);
 
-	const results = await customAxe.scanUrls(configCustom.urls, configCustom.axeConfig);
+	const results = await customAxe.scanUrls(config.urls, config.axeConfig);
 
 	const summaryResults = await customAxe.convertAxeResultsToPa11yReportCompatible(results);
 	// console.log(JSON.stringify(summaryResults, null, 2));
