@@ -85,86 +85,22 @@ Options:
                                    pa11y-ci-reporter-html to generate a report
                                    in <dir>
   -h, --help                       display help for command
-  -c, --config <string>            Use an alternate configuration for this analysis,
-                                   default file: config/custom-axe.config.js
-	-t, --template <string>          Use an alternate template for this analysis,
-                                   default file: config/index.handlebars
 ```
 
 ### Example implementation of switches
 
 In a git bash window, run the following command from the /bin/ directory:
 
-`node custom-axe.js --config config/custom-pa11y.config.js --template config/index.handlebars -h HTML_Report https://www.saga-it.com`
+`node custom-axe.js -s http://coc.kciprojects.com/xml/kci-sitemap.xml -h --HTML_axe-Report -x '.*(pdf|jpg|png)$'`
 
-This will run an accessibility test against a test web site of multiple web pages, with the configuration that is set with the **--config** option and using the template that is set with the **--template** option a folder will be created with the name "***HTML_Report***". Inside that folder will be index.html file of that report, it will display the test results and the score.
+This will run an accessibility test against a test web site of multiple web pages and create a folder with the name "***--HTML_Report***" within the  "\bin\\" folder. Opening the index.html of that report will present you with test results and scoring.
 
 ## Pre-configured examples
 
-The /config/ directory contains multiple files with different configurations in each file, which show different features through their configuration settings as follows. Use the **--config** option to select any .js file found inside the /config/ directory:
+The /bin/ directory contains multiple "custom-axe" files that showcase different features via their configuration settings as follows. Use any desired combinations of switch commands on the base .js files below:
 
-- **Run all axe rules when testing**: 01-custom-axe.js.
-
-- **Run only certain rules that are TTv5 friendly**: 02-custom-axe.js
-
-## The syntax of the config files
-
-- **Urls**: urls can be a string or a function, functions would use in case the url needs authentication, functions take a browser puppeteer that can be used to perform certain actions before returning the url to run against axe.
-
-  Login function example:
-
-  ```
-    async (puppet) => {
-	    // log into site before running tests and push the post login page onto
-		  const page = await puppet.newPage();
-		  await page.goto('http://testing-ground.scraping.pro/login');
-		  await page.waitForSelector('#usr', {visible: true});
-
-		  // Fill in and submit login form.
-		  const emailInput = await page.$('#usr');
-		  await emailInput.type('admin');
-		  const passwordInput = await page.$('#pwd');
-		  await passwordInput.type('12345');
-		  const submitButton = await page.$('input[type=submit]');
-
-	    await Promise.all([
-		    submitButton.click(),
-		    page.waitForNavigation(),
-		  ]);
-
-		  if (page.url() != 'http://testing-ground.scraping.pro/login?mode=welcome') {
-		    console.error('login failed!');
-		  } else {
-		    console.log('login succeeded');
-		    const cookies = await page.cookies();
-		    for (var key in cookies) {
-		      console.log(`found cookie ${cookies[key].name}`);
-		    }
-		  }
-		  await page.close();
-
-		  return 'http://testing-ground.scraping.pro/login?mode=welcome';
-		},
-  ```
-
-- **axeConfig**: inside the axeConfig object the configuration is set up.
-
-    - **tags**: tags can be used to select groups of tests.
-
-    - **checks**: can define new checks or override existing.
-
-    - **disableOtherRules**: if true, only use our rules.
-
-    - **rules**: define new rules or override existing. 
-
-## Configure the handlebars templates
-
-to modify any title, is to search inside the template and change the text
-
-to hide the table, go to the **style** tag and look for the **table** styles and add **display: none**.
-
-to hide the chart, you must comment out the script tag and comment out the tag containing the id accessibilityChart.
-##
+- **Execute all axe rules when testing**: `01-custom-axe.js`
+- **Execute only certain rules that are TTv5 friendly**: `02-custom-axe.js`
 
 <hr>
 
@@ -173,3 +109,7 @@ to hide the chart, you must comment out the script tag and comment out the tag c
 More comprehensive guidance on the axe-core engine can be found in the [Axe JavaScript Accessibility API](https://github.com/dequelabs/axe-core/blob/develop/doc/API.md). 
 
 <hr>
+
+01/30/2021 | 09:33p
+
+
