@@ -1,57 +1,44 @@
-#!/usr/bin/env node
-'use strict';
-
-//
-//*** THIS VERSION RUNS TESTS AGAINST ALL AXE RULES - NONE ARE DISABLED
-//
-
-
-const customAxe = require('..');
-const pkg = require('../package.json');
-const globby = require('globby');
-const protocolify = require('protocolify');
-const commander = require('commander');
-
-const fs = require('fs');
-
-commander
-	.version(pkg.version)
-	.name('node custom-axe.js')
-	.usage('[options] <paths>')
-	.option(
-		'-s, --sitemap <url>',
-		'the path to a sitemap'
-	)
-	.option(
-		'-f, --sitemap-find <pattern>',
-		'a pattern to find in sitemaps. Use with --sitemap-replace'
-	)
-	.option(
-		'-r, --sitemap-replace <string>',
-		'a replacement to apply in sitemaps. Use with --sitemap-find'
-	)
-	.option(
-		'-x, --sitemap-exclude <pattern>',
-		'a pattern to find in sitemaps and exclude any url that matches'
-	)
-	.requiredOption(
-		'-h, --html-report <dir>',
-		'Takes json output and uses pa11y-ci-reporter-html to generate a report in <dir>'
-	).parse(process.argv);
-
-// Parse the args into valid paths using glob and protocolify
-let commandLineUrls = globby.sync(commander.args, {nonull: true}).map(protocolify);
-
 const config = {
 	urls: [
-		// Hard-code URLs for testing here
+		// // First url requires login. The concept here is that a 'url' in this
+		// // list can either be a string url or a function that takes a
+		// // puppeteer browser that can be used to perform some actions before
+		// // returning the actual URL to run lighthouse against.
+		// async (puppet) => {
+		// 	// log into site before running tests and push the post login page onto
+		// 	const page = await puppet.newPage();
+		// 	await page.goto('http://testing-ground.scraping.pro/login');
+		// 	await page.waitForSelector('#usr', {visible: true});
 
-		//"https://section508coordinators.github.io/BaselineTestPages2/test-cases/TC1005C001.html",
-		//"https://section508coordinators.github.io/BaselineTestPages2/test-cases/TC1005C002.html",
-		//"https://section508coordinators.github.io/BaselineTestPages2/test-cases/TC1005C003.html",
-		//"https://section508coordinators.github.io/BaselineTestPages2/test-cases/TC1005C004.html",
-		//"https://section508coordinators.github.io/BaselineTestPages2/test-cases/TC1005C007.html"
+		// 	// Fill in and submit login form.
+		// 	const emailInput = await page.$('#usr');
+		// 	await emailInput.type('admin');
+		// 	const passwordInput = await page.$('#pwd');
+		// 	await passwordInput.type('12345');
+		// 	const submitButton = await page.$('input[type=submit]');
 
+		// 	await Promise.all([
+		// 		submitButton.click(),
+		// 		page.waitForNavigation(),
+		// 	]);
+
+		// 	if (page.url() != 'http://testing-ground.scraping.pro/login?mode=welcome') {
+		// 		console.error('login failed!');
+		// 	} else {
+		// 		console.log('login succeeded');
+		// 		const cookies = await page.cookies();
+		// 		for (var key in cookies) {
+		// 			console.log(`found cookie ${cookies[key].name}`);
+		// 		}
+		// 	}
+		// 	await page.close();
+
+		// 	return 'http://testing-ground.scraping.pro/login?mode=welcome';
+		// },
+		// 'http://testing-ground.scraping.pro/table',
+		// 'http://testing-ground.scraping.pro/blocks',
+		// 'http://testing-ground.scraping.pro/textlist',
+		// 'http://testing-ground.scraping.pro/invalid'
 	],
 	axeConfig: {
 		// branding: {
@@ -187,27 +174,4 @@ const config = {
 	}
 };
 
-const main = async () => {
-	// configuration urls first, then commandline urls then sitemap
-	config.urls = config.urls.concat(commandLineUrls);
-
-	const filteredSitemapUrls = await customAxe.retrieveSitemapUrls(commander.sitemap,
-		commander.sitemapFind,
-		commander.sitemapReplace,
-		commander.sitemapExclude);
-
-	config.urls = config.urls.concat(filteredSitemapUrls);
-
-	const results = await customAxe.scanUrls(config.urls, config.axeConfig);
-
-	const summaryResults = await customAxe.convertAxeResultsToPa11yReportCompatible(results);
-	// console.log(JSON.stringify(summaryResults, null, 2));
-
-	await customAxe.generateHtmlReports(summaryResults, commander.htmlReport, {});
-};
-
-main().catch(error => {
-	console.error('unexpected failure: ');
-	console.error(error);
-	process.exit(1);
-});
+module.exports = config;

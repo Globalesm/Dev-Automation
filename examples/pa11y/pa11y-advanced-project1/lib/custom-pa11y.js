@@ -13,9 +13,9 @@ const fs = require('fs');
 // Following function code extracted from pa21y-ci-reporter-html. This was
 // necessary because the module is not configurable enough to allow
 // specifying a custom template.
-const generateSummaryHtmlReport = (summary, outputDir) => {
+const generateSummaryHtmlReport = (summary, outputDir, templateName) => {
 	// console.log(JSON.stringify(summary));
-	const templateFile = path.resolve(`${__dirname}/index.handlebars`);
+	const templateFile = path.resolve(`${__dirname}/../${templateName}`);
 	const summaryReportTemplate = fs.readFileSync(templateFile, 'utf-8');
 	const template = handlebars.compile(summaryReportTemplate);
 
@@ -70,7 +70,7 @@ const fixupResults = jsonResults => {
 	/////////////
 };
 
-exports.generateHtmlReports = async (jsonResults, outputDir, options) => {
+exports.generateHtmlReports = async (jsonResults, outputDir, options, templateName) => {
 	// // console.log('................');
 	// console.log(JSON.stringify(jsonResults, null, 2));
 	// console.log(`errors: ${jsonResults.errors}`);
@@ -121,7 +121,8 @@ exports.generateHtmlReports = async (jsonResults, outputDir, options) => {
 		summary,
 		pages
 	},
-		outputDir);
+		outputDir,
+		templateName);
 
 };
 

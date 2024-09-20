@@ -14,9 +14,9 @@ const puppeteer = require('puppeteer');
 // Following function code extracted from pa21y-ci-reporter-html. This was
 // necessary because the module is not configurable enough to allow
 // specifying a custom template.
-const generateSummaryHtmlReport = (summary, outputDir) => {
+const generateSummaryHtmlReport = (summary, outputDir, templateName) => {
 	// console.log(JSON.stringify(summary));
-	const templateFile = path.resolve(`${__dirname}/index.handlebars`);
+	const templateFile = path.resolve(`${__dirname}/../${templateName}`);
 	const summaryReportTemplate = fs.readFileSync(templateFile, 'utf-8');
 	const template = handlebars.compile(summaryReportTemplate);
 	// console.log(JSON.stringify(summary, null, 2));
@@ -25,7 +25,7 @@ const generateSummaryHtmlReport = (summary, outputDir) => {
 	fs.writeFileSync(outputFile, summaryReport);
 };
 
-exports.generateHtmlReports = async (jsonResults, outputDir, options) => {
+exports.generateHtmlReports = async (jsonResults, outputDir, options, template) => {
     validate.isString(outputDir, 'Invalid output directory path');
 
     pa11yCiReporter.ensureOutputDirectory(outputDir);
@@ -67,14 +67,9 @@ exports.generateHtmlReports = async (jsonResults, outputDir, options) => {
     summary.failures = summary.total - summary.passes;
     summary.score = `${Math.round((summary.passes / summary.total) * 100)}%`;
 
-    generateSummaryHtmlReport({
-	date: new Date(),
-	summary,
-	pages
-    },
-			      outputDir);
+    generateSummaryHtmlReport({date: new Date(), summary, pages}, outputDir, template);
 
-};
+}; 
 
 exports.retrieveSitemapUrls = async (sitemapUrl, find, replace, exclude) => {
 	const filteredUrls = [];

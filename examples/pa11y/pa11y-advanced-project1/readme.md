@@ -73,42 +73,90 @@ Options:
                                    pa11y-ci-reporter-html to generate a report
                                    in <dir>
   -h, --help                       display help for command
+  -c, --config <string>            Use an alternate configuration for this analysis,
+                                   default file: config/custom-axe.config.js
+  -t, --template <string>          Use an alternate template for this analysis,
+                                   default file: config/index.handlebars
 ```
 
 ### Example implementation of switches
 
 In a git bash window, run the following command from the /bin/ directory:
 
-`node custom-pa11y.js -s http://coc.kciprojects.com/xml/kci-sitemap.xml -h --HTML_Report -x '.*(pdf|jpg|png)$'`
+`node custom-pa11y.js --config config/custom-pa11y.config.js --template config/index.handlebars -h HTML_Report https://www.saga-it.com`
 
-This will run an accessibility test against a test web site of multiple web pages and create a folder with the name "***--HTML_Report***" within the  "\bin\\" folder. Opening the index.html of that report will present you with test results and scoring.
+This will run an accessibility test against a test web site of multiple web pages, with the configuration that is set with the **--config** option and using the template that is set with the **--template** option a folder will be created with the name "***HTML_Report***". Inside that folder will be index.html file of that report, it will display the test results and the score..
 
 ## Pre-configured examples
 
 The /bin/ directory contains multiple "custom-pa11y" files that showcase different features via their configuration settings as follows:
 
 - **Script 1 (01-custom-pa11y.js)**: 
-  Use the following syntax for this script:`node 01-custom-pa11y.js -h --HTML_Report -x '.*(pdf|jpg|png)$'`This script presents the following:
+  Use the following syntax for this script:`node custom-pa11y.js --config config/01-custom-pa11y.config.js --template config/index.handlebars -h HTML_Report https://www.saga-it.com`This script presents the following:
   - Uses the "runners:" option to specify the HTML CodeSniffer ruleset to use for testing. No rules are ignored, so testing is done using the full range of rules.
-  - Uses the "urls:" option and tests against 5 URLs that are hard-coded inside the script, as opposed to pointing to a sitemap file.
-  - Uses the "standards:" option, this example uses the WCAG AA rules for HTML CodeSniffer. The HTML CodeSniffer ruleset is set via the "runners:" option.
-  - Finally in the absence of the -h switch on the command, this example writes the test results to the *command window*.  
 - **Script 2 (02-custom-pa11y.js):** 
-  Use the following syntax for this script:`node 02-custom-pa11y.js`This script presents the following:
+  Use the following syntax for this script:`node custom-pa11y.js --config config/02-custom-pa11y.config.js --template config/index.handlebars -h HTML_Report https://www.saga-it.com`This script presents the following:
   - Uses the "runners:" option to specify the axe-core ruleset to use for testing. No rules are ignored, so testing is done using the full range of rules.
   - Uses the "urls:" option and tests against 1 URL that is hard-coded inside the script, as opposed to pointing to a sitemap file.
-  - Finally in the absence of the -h switch on the command, this example writes the test results to the *command window*. 
 - **Script 3 (03-custom-pa11y.js):** 
-  Use the following syntax for this script:`node 03-custom-pa11y.js -s http://coc.kciprojects.com/xml/kci-sitemap.xml -h --HTML_Report -x '.*(pdf|jpg|png)$' `This script presents the following:
+  Use the following syntax for this script:`node custom-pa11y.js --config config/03-custom-pa11y.config.js --template config/index.handlebars -h HTML_Report https://www.saga-it.com`This script presents the following:
   - Uses the "runners:" option to specify both the axe-core and HTML CodeSniffer rulesets to be used for testing. No rules are ignored, so testing is done using the full range of all rules from both rulesets.
-  - Uses the "-s" switch to override the hard coded URLs within the script but rather use a sitemap.xml file to  specify the URLs to test with.
-  - Finally using the -h switch on the command, this example writes the test results to an HTML report as opposed to the *command window*. Reports will write to the "/bin/" folder using the report name specified in the command switch ("HTML_Report").
 - **Script 4 (04-custom-pa11y.js):** 
-  Use the following syntax for this script:`node 04-custom-pa11y.js -s http://coc.kciprojects.com/xml/kci-sitemap.xml -h --HTML_Custom-Rules-Report -x '.*(pdf|jpg|png)$' `This script presents the following:
+  Use the following syntax for this script:`node custom-pa11y.js --config config/04-custom-pa11y.config.js --template config/index.handlebars -h HTML_Report https://www.saga-it.com`This script presents the following:
   - Uses the "runners:" option to specify both the axe-core and HTML CodeSniffer rulesets to be used for testing. 
   - Uses the "ignore" option to specific rules to ignore for both rulesets specififed
-  - Uses the "-s" switch to override the hard coded URLs within the script but rather use a sitemap.xml file to  specify the URLs to test with.
-  - Using the -h switch on the command, this example writes the test results to an HTML report as opposed to the *command window*. Reports will write to the "/bin/" folder using the report name specified in the command switch ("HTML_Custom-Rules-Report").
+
+## The syntax of the config files
+
+- **Urls**: urls can be a string or a function, functions would use in case the url needs authentication, functions take a browser puppeteer that can be used to perform certain actions before returning the url to run against axe.
+
+  Login function example:
+
+  ```
+    async (puppet) => {
+	    // log into site before running tests and push the post login page onto
+		  const page = await puppet.newPage();
+		  await page.goto('http://testing-ground.scraping.pro/login');
+		  await page.waitForSelector('#usr', {visible: true});
+
+		  // Fill in and submit login form.
+		  const emailInput = await page.$('#usr');
+		  await emailInput.type('admin');
+		  const passwordInput = await page.$('#pwd');
+		  await passwordInput.type('12345');
+		  const submitButton = await page.$('input[type=submit]');
+
+	    await Promise.all([
+		    submitButton.click(),
+		    page.waitForNavigation(),
+		  ]);
+
+		  if (page.url() != 'http://testing-ground.scraping.pro/login?mode=welcome') {
+		    console.error('login failed!');
+		  } else {
+		    console.log('login succeeded');
+		    const cookies = await page.cookies();
+		    for (var key in cookies) {
+		      console.log(`found cookie ${cookies[key].name}`);
+		    }
+		  }
+		  await page.close();
+
+		  return 'http://testing-ground.scraping.pro/login?mode=welcome';
+		},
+  ```
+
+- **defaults**: inside the axeConfig object the configuration is set up.
+
+    - **ignore**: the rules to be ignored are added or modified.
+
+## Configure the handlebars templates
+
+to modify any title, is to search inside the template and change the text
+
+to hide the table, go to the **style** tag and look for the **table** styles and add **display: none**.
+
+to hide the chart, you must comment out the script tag and comment out the tag containing the id accessibilityChart.
 
 <hr>
 

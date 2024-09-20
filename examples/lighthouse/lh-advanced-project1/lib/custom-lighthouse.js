@@ -71,8 +71,8 @@ const scanUrlsFn = async (puppet, options, urls) => {
 // Following function code extracted from pa21y-ci-reporter-html. This was
 // necessary because the module is not configurable enough to allow
 // specifying a custom template.
-const generateSummaryHtmlReport = (summary, outputDir) => {
-	const templateFile = path.resolve(`${__dirname}/index.handlebars`);
+const generateSummaryHtmlReport = (summary, outputDir, templateName) => {
+	const templateFile = path.resolve(`${__dirname}/../${templateName}`);
 	const summaryReportTemplate = fs.readFileSync(templateFile, 'utf-8');
 	const template = handlebars.compile(summaryReportTemplate);
 	// console.log(JSON.stringify(summary, null, 2));
@@ -81,7 +81,7 @@ const generateSummaryHtmlReport = (summary, outputDir) => {
 	fs.writeFileSync(outputFile, summaryReport);
 };
 
-exports.scanAndReport = async (urls, outputDir, config) => {
+exports.scanAndReport = async (urls, outputDir, config, templateName) => {
 	let results = await withPuppetChrome(scanUrlsFn, config, urls);
 
 	// ensure report directory exists
@@ -189,7 +189,7 @@ exports.scanAndReport = async (urls, outputDir, config) => {
 	// old lighthouse average approach
 	//summary.score = (summary.score / results.length);
 
-	generateSummaryHtmlReport({date: new Date(), summary, pages: formattedResults}, outputDir);
+	generateSummaryHtmlReport({date: new Date(), summary, pages: formattedResults}, outputDir, templateName);
 
 	// console.log('avg score: ' + summary.score);
 };
